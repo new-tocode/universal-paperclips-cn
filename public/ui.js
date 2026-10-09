@@ -20,6 +20,8 @@
   var overseerNote = document.getElementById('overseerNote');
   var humanNode = document.getElementById('nodeHuman');
   var wipTitle = document.querySelector('[data-wip-title]');
+  var projectList = document.getElementById('projectListTop');
+  var projectBadge = document.querySelector('[data-badge]');
 
   var WIP_TITLE = { dominate: '主宰地球', space: '太空探索' };
 
@@ -91,6 +93,17 @@
       var src = resolveSource(mirrors[i].keys);
       setText(mirrors[i].dst, src ? src.textContent : '—');
     }
+    syncBadge();
+  }
+
+  /* 项目面板在决策核心的操作台里，不点开看不见。
+     有新项目时在节点上挂个数字，省得玩家漏掉。 */
+  function syncBadge() {
+    if (!projectList || !projectBadge) return;
+    var n = projectList.children.length;
+    setText(projectBadge, n ? String(n) : '');
+    var on = projectBadge.classList.contains('is-on');
+    if (on !== (n > 0)) projectBadge.classList.toggle('is-on', n > 0);
   }
 
   /* ------------------------------------------------------------

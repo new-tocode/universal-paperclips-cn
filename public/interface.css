@@ -650,6 +650,21 @@ button.node:focus-visible { outline: 1px solid var(--accent); outline-offset: 2p
   color: var(--dim);
 }
 
+/* 待办角标：项目面板藏在操作台里，有新项目时节点上要看得见 */
+.node__badge {
+  display: none;
+  margin-left: 7px;
+  padding: 0 5px;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 400;
+  letter-spacing: .1em;
+  color: var(--on-accent);
+  background: var(--accent);
+  box-shadow: 0 0 12px -2px var(--glow);
+}
+.node__badge.is-on { display: inline-block; }
+
 /* 人类监管：虚线框 + 警示色，视觉上区别于"公司内部" */
 .node--human { border-style: dashed; border-color: rgba(255, 176, 32, .5); cursor: default; }
 .node--human .node__hd .ico { color: #ffb020; }
