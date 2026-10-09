@@ -92,6 +92,9 @@ body::before {
 
 /* ---------- 2. 页面骨架 ---------- */
 
+/* 用 grid 而不是 flex：只有 grid 的 1fr 行会真的把 min-height 撑出来的
+   剩余空间分给舞台，flex-grow 在这里不生效，页面底部会空一大块。
+   三个在流内的子元素：顶栏、感知日志、舞台。 */
 #page {
   position: relative;
   z-index: 1;
@@ -99,8 +102,8 @@ body::before {
   min-height: 100vh;
   margin: 0 auto;
   padding: 12px 18px 22px;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: auto auto 1fr;
   gap: var(--gap);
 }
 
@@ -255,7 +258,6 @@ p.hypnoDrone {
 
 /* 三栏等高：操作台跟着中心一起撑满，页面底部就不会留一片空 */
 .stage {
-  flex: 1;
   display: grid;
   grid-template-columns: var(--rail-l) minmax(0, 1fr) var(--rail-r);
   gap: var(--gap);
@@ -409,7 +411,6 @@ p.hypnoDrone {
 .world__hd .right { margin-left: auto; }
 
 .core--earth { flex: 1; display: flex; flex-direction: column; }
-.core--earth .org { margin: auto 0; }
 
 /* 实景底：这台 AI 正看着车间 */
 .core__feed {
@@ -441,12 +442,13 @@ p.hypnoDrone {
     rgba(6, 8, 11, .96) 100%);
 }
 
-/* 扫描扫过 */
+/* 扫描扫过。走 top 的百分比而不是 translateY 的像素，
+   这样中心被拉多高都能扫到底。 */
 .core__scan {
   position: absolute;
   left: 0;
   right: 0;
-  top: 0;
+  top: -90px;
   height: 90px;
   z-index: 1;
   pointer-events: none;
@@ -454,14 +456,77 @@ p.hypnoDrone {
   animation: sweep 7.5s linear infinite;
 }
 @keyframes sweep {
-  0%   { transform: translateY(-100px); opacity: 0; }
+  0%   { top: -90px; opacity: 0; }
   12%  { opacity: 1; }
   88%  { opacity: 1; }
-  100% { transform: translateY(560px); opacity: 0; }
+  100% { top: 100%; opacity: 0; }
+}
+
+/* 底部这条是这台 AI 的实景视野：车间监控。
+   它同时解决了中心在很高的窗口里会空一大片的问题。 */
+.core__cam {
+  position: relative;
+  flex: none;
+  height: 138px;
+  border-top: 1px solid var(--line-soft);
+  overflow: hidden;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 13px;
+}
+.core__cam::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: url(assets/feed-lab.jpg) center 66% / cover no-repeat;
+  opacity: .55;
+  filter: saturate(.8);
+}
+.core__cam::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg,
+    rgba(6, 8, 11, .78) 0%,
+    rgba(6, 8, 11, .25) 42%,
+    rgba(6, 8, 11, .9) 100%);
+}
+.core__camtag,
+.core__live {
+  position: relative;
+  z-index: 1;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: .18em;
+}
+.core__camtag { display: flex; align-items: center; gap: 6px; color: var(--muted); }
+.core__camtag .ico { width: 12px; height: 12px; color: var(--accent); }
+.core__live { color: var(--accent); animation: blink 2.6s ease-in-out infinite; }
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+
+.core__camscan {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 42px;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent, rgba(255, 255, 255, .07) 70%, transparent);
+  animation: camscan 5.4s linear infinite;
+}
+@keyframes camscan {
+  0%   { transform: translateY(-46px); opacity: 0; }
+  15%  { opacity: 1; }
+  85%  { opacity: 1; }
+  100% { transform: translateY(142px); opacity: 0; }
 }
 
 /* 组织架构：连线从节点自身锚出，节点高度随内容变化也不会错位 */
 .org {
+  --org-gap: 14px;
   position: relative;
   z-index: 1;
   display: flex;
@@ -495,14 +560,15 @@ p.hypnoDrone {
 }
 
 /* 三个部门共用一条母线 */
-.org__row--3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.org__row--3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--org-gap); }
 .org__row--3::before { height: 26px; }
+/* 母线正好横跨首尾两个部门的中轴：(100% - 两个间隙) / 6 就是第一列的中心 */
 .org__row--3::after {
   content: "";
   position: absolute;
   top: -26px;
-  left: 16.6%;
-  right: 16.6%;
+  left: calc((100% - var(--org-gap) * 2) / 6);
+  right: calc((100% - var(--org-gap) * 2) / 6);
   height: 1px;
   background: var(--line);
 }
@@ -704,6 +770,17 @@ body:not([data-phase="earth"]) .dept {
 }
 body:not([data-phase="earth"]) .dept > .panel__hd,
 body:not([data-phase="earth"]) .dept > .panel__rule { display: none; }
+
+/* 操作台尾注：贴到面板底部，说明这个部门管什么。
+   中心被拉高时，操作台底部也不至于空得没个交代。 */
+.panel p.dept__ft {
+  margin: auto 0 0;
+  padding-top: 9px;
+  border-top: 1px solid var(--line-soft);
+  font-size: 10.5px;
+  line-height: 1.6;
+  color: var(--dim);
+}
 
 /* 看板与财务概况只在人类时代有意义 */
 body:not([data-phase="earth"]) #p-board,
