@@ -1,11 +1,11 @@
 /* ============================================================
    界面层
    ------------------------------------------------------------
-   只做两件事：把游戏状态翻译成 <body> 上的 data-phase / data-dept，
-   以及把若干真实数值镜像到顶栏与看板上。
+   只做三件事：把游戏状态翻译成 <body> 上的 data-phase / data-dept、
+   把若干真实数值镜像到顶栏与看板上，以及把中心的地球设施标记指向
+   真实操作台（只描边、只滚动，不搬动任何元素）。
 
-   这里不包含任何游戏逻辑，也不修改 logic.js 里的任何变量——
-   全部是只读的。
+   这里不包含任何游戏逻辑，也不修改 logic.js 里的任何变量。
    ============================================================ */
 (function () {
   'use strict';
@@ -19,11 +19,9 @@
   var overseerTag = document.getElementById('overseerTag');
   var overseerNote = document.getElementById('overseerNote');
   var humanNode = document.getElementById('nodeHuman');
-  var wipTitle = document.querySelector('[data-wip-title]');
   var projectList = document.getElementById('projectListTop');
-  var projectBadge = document.querySelector('[data-badge]');
-
-  var WIP_TITLE = { dominate: '主宰地球', space: '太空探索' };
+  var projectBadges = [];
+  var facilities = [];
 
   var GONE_TAG = '已解散';
   var GONE_NOTE = '监管方已不存在。不再有人批准你做什么。';
@@ -59,7 +57,8 @@
     var phase = readPhase();
     if (body.dataset.phase !== phase) body.dataset.phase = phase;
 
-    if (wipTitle) setText(wipTitle, WIP_TITLE[phase] || '');
+    // 地球上的设施标记只在主宰地球阶段用，离开时把选中状态收干净
+    if (phase !== 'dominate' && body.dataset.facility) clearFacility();
 
     // 人类是否还在，看 humanFlag 本身。
     // 不能用"信任那一块被藏起来了"来判断——那块还受计算资源是否解锁影响。
@@ -97,13 +96,17 @@
   }
 
   /* 项目面板在决策核心的操作台里，不点开看不见。
-     有新项目时在节点上挂个数字，省得玩家漏掉。 */
+     有新项目时在节点上挂个数字，省得玩家漏掉。
+     角标有两处：中心架构图的决策核心节点，以及决策核心面板的标题——
+     后者是给中心不是架构图的阶段用的。 */
   function syncBadge() {
-    if (!projectList || !projectBadge) return;
+    if (!projectList) return;
     var n = projectList.children.length;
-    setText(projectBadge, n ? String(n) : '');
-    var on = projectBadge.classList.contains('is-on');
-    if (on !== (n > 0)) projectBadge.classList.toggle('is-on', n > 0);
+    for (var i = 0; i < projectBadges.length; i++) {
+      setText(projectBadges[i], n ? String(n) : '');
+      var on = projectBadges[i].classList.contains('is-on');
+      if (on !== (n > 0)) projectBadges[i].classList.toggle('is-on', n > 0);
+    }
   }
 
   /* ------------------------------------------------------------
@@ -133,6 +136,82 @@
     syncDeptButtons();
   }
 
+  /* ------------------------------------------------------------
+     地球上的设施标记 → 真实操作台。
+
+     data-target 指向真实元素，所以"解锁没有"不用另外记：
+     逻辑层把那一块藏起来的时候，标记就是未解锁的样子。
+     选中只做三件事：给操作台描边、滚进视野、标记自己亮起来。
+     ------------------------------------------------------------ */
+  function readFacilities() {
+    var nodes = document.querySelectorAll('.gmark[data-facility]');
+    for (var i = 0; i < nodes.length; i++) {
+      var sel = nodes[i].getAttribute('data-target');
+      facilities.push({
+        el: nodes[i],
+        target: sel ? document.querySelector(sel) : null
+      });
+    }
+  }
+
+  function eachFacility(name, fn) {
+    for (var i = 0; i < facilities.length; i++) {
+      var f = facilities[i];
+      if (name && f.el.getAttribute('data-facility') !== name) continue;
+      fn(f);
+    }
+  }
+
+  function clearFacility() {
+    delete body.dataset.facility;
+    eachFacility(null, function (f) {
+      f.el.classList.remove('is-on');
+      f.el.setAttribute('aria-pressed', 'false');
+      if (f.target) f.target.classList.remove('is-focus');
+    });
+  }
+
+  function selectFacility(name) {
+    if (!name || body.dataset.facility === name) return;
+    body.dataset.facility = name;
+
+    eachFacility(null, function (f) {
+      var on = f.el.getAttribute('data-facility') === name;
+      f.el.classList.toggle('is-on', on);
+      f.el.setAttribute('aria-pressed', on ? 'true' : 'false');
+      // 只给选中的那一块描边，其余的先撤掉
+      if (f.target) f.target.classList.toggle('is-focus', on);
+    });
+
+    eachFacility(name, function (f) {
+      if (f.target && f.target.scrollIntoView) {
+        f.target.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      }
+    });
+  }
+
+  function wireFacilities() {
+    readFacilities();
+    eachFacility(null, function (f) {
+      f.el.setAttribute('aria-pressed', 'false');
+      f.el.addEventListener('click', function () {
+        if (this.classList.contains('is-locked')) return;
+        selectFacility(this.getAttribute('data-facility'));
+      });
+    });
+  }
+
+  /* 逻辑层还没把这一处的操作台放出来（工厂没建、蜂群没上线、能源没解锁……） */
+  function syncLocked() {
+    eachFacility(null, function (f) {
+      var locked = !f.target || gameHidden(f.target);
+      if (f.el.classList.contains('is-locked') !== locked) {
+        f.el.classList.toggle('is-locked', locked);
+        f.el.setAttribute('aria-disabled', locked ? 'true' : 'false');
+      }
+    });
+  }
+
   /* ------------------------------------------------------------ */
   function tick() {
     syncPhase();
@@ -140,6 +219,7 @@
     var now = performance.now();
     if (now - lastMirrorAt >= MIRROR_INTERVAL) {
       lastMirrorAt = now;
+      syncLocked();
       syncMirrors();
     }
   }
@@ -150,7 +230,11 @@
       mirrors.push({ dst: nodes[i], keys: nodes[i].getAttribute('data-mirror').split('|') });
     }
 
+    var badges = document.querySelectorAll('[data-badge]');
+    for (var j = 0; j < badges.length; j++) projectBadges.push(badges[j]);
+
     wireDeptNodes();
+    wireFacilities();
     tick();
 
     if (window.Paperclips && Paperclips.game && Paperclips.game.onRender) {

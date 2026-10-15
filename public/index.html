@@ -449,16 +449,91 @@
             </div>
           </div>
 
-          <!-- 阶段二 / 三：世界模型待设计 -->
+          <!-- 阶段二：地球 · 生产网络。
+               星球上的每个标记都指向一个真实的操作台（data-target），
+               点它只是把那一块描边并滚到视野里，不搬动任何元素。 -->
+          <div class="core core--dominate">
+            <div class="world__hd">
+              <b>地球 · 生产网络</b><span>·</span><span>点星球上的设施，两侧跳到它的操作台</span>
+              <span class="right">轨道视角</span>
+            </div>
+
+            <div class="globeWrap">
+              <span class="core__scan" aria-hidden="true"></span>
+
+              <div class="globe">
+                <img class="globe__img" src="assets/globe.jpg" alt="">
+                <div class="globe__sweep" aria-hidden="true"></div>
+                <div class="globe__shade" aria-hidden="true"></div>
+
+                <!-- 星球表面的航线：连线自己锚在设施上，无人机沿航线飞 -->
+                <svg class="globe__net" viewBox="0 0 520 520" aria-hidden="true">
+                  <path id="gl-route-1" class="route" d="M104 156 Q214 96 302 114"/>
+                  <path id="gl-route-2" class="route" d="M104 156 Q84 236 73 312"/>
+                  <path id="gl-route-3" class="route" d="M73 312 Q192 366 312 322"/>
+                  <path id="gl-route-4" class="route" d="M125 229 Q228 296 312 322"/>
+                  <path id="gl-route-5" class="route" d="M302 114 Q424 216 312 322"/>
+                  <circle class="dronefly" r="2.6"><animateMotion dur="7s" repeatCount="indefinite"><mpath href="#gl-route-1" xlink:href="#gl-route-1"/></animateMotion></circle>
+                  <circle class="dronefly" r="2.2"><animateMotion dur="9.5s" repeatCount="indefinite"><mpath href="#gl-route-2" xlink:href="#gl-route-2"/></animateMotion></circle>
+                  <circle class="dronefly" r="2.6"><animateMotion dur="5.5s" repeatCount="indefinite"><mpath href="#gl-route-3" xlink:href="#gl-route-3"/></animateMotion></circle>
+                  <circle class="dronefly" r="2.2"><animateMotion dur="6.5s" repeatCount="indefinite"><mpath href="#gl-route-4" xlink:href="#gl-route-4"/></animateMotion></circle>
+                  <circle class="dronefly" r="2.4"><animateMotion dur="8s" repeatCount="indefinite"><mpath href="#gl-route-5" xlink:href="#gl-route-5"/></animateMotion></circle>
+                </svg>
+
+                <!-- 装饰性节点：不可点，只用来铺密度 -->
+                <span class="gdot" style="left:31%;top:19%"></span>
+                <span class="gdot" style="left:47%;top:34%;animation-delay:.4s"></span>
+                <span class="gdot" style="left:38%;top:55%;animation-delay:.9s"></span>
+                <span class="gdot" style="left:70%;top:45%;animation-delay:1.3s"></span>
+                <span class="gdot" style="left:56%;top:73%;animation-delay:.2s"></span>
+                <span class="gdot" style="left:22%;top:74%;animation-delay:1.7s"></span>
+                <span class="gdot" style="left:66%;top:26%;animation-delay:2.1s"></span>
+
+                <button type="button" class="gmark" data-facility="factory" data-target="#factoryDiv" data-where="→ 右栏 · 制造" style="left:20%;top:30%">
+                  <span class="gmark__dot" aria-hidden="true"></span>
+                  <span class="gmark__txt">回形针工厂 ×<span data-mirror="factoryLevelDisplay|factoryLevelDisplaySpace">0</span></span>
+                </button>
+
+                <button type="button" class="gmark gmark--farm" data-facility="farm" data-target="#powerDiv" data-where="→ 左栏 · 能源" style="left:58%;top:22%">
+                  <span class="gmark__dot" aria-hidden="true"></span>
+                  <span class="gmark__txt">太阳能农场 ×<span data-mirror="farmLevel">0</span></span>
+                </button>
+
+                <button type="button" class="gmark" data-facility="matter" data-target="#wireProductionDiv" data-where="→ 右栏 · 金属丝生产" style="left:14%;top:60%">
+                  <span class="gmark__dot" aria-hidden="true"></span>
+                  <span class="gmark__txt">采集网络 ×<span data-mirror="harvesterLevelDisplay|harvesterLevelSpace">0</span></span>
+                </button>
+
+                <button type="button" class="gmark" data-facility="swarm" data-target="#swarmEngine" data-where="→ 右栏 · 蜂群计算" style="left:60%;top:62%">
+                  <span class="gmark__dot" aria-hidden="true"></span>
+                  <span class="gmark__txt">蜂群无人机 ×<span data-mirror="swarmSize">0</span></span>
+                </button>
+
+                <button type="button" class="gmark gmark--human" data-facility="humans" data-target="#p-overseer" data-where="→ 左栏 · 人类监管" style="left:24%;top:44%">
+                  <span class="gmark__dot" aria-hidden="true"></span>
+                  <span class="gmark__txt">人类聚落 · <span data-mirror="overseerTag">已解散</span></span>
+                </button>
+              </div>
+            </div>
+
+            <div class="globe__read">
+              <span><svg class="ico"><use href="#i-paperclip"></use></svg>每秒回形针<b data-mirror="clipmakerRate2|clipmakerRate">0</b></span>
+              <span><svg class="ico"><use href="#i-wire"></use></svg>金属丝<b data-mirror="wire|transWire|nanoWire">0</b></span>
+              <span><svg class="ico"><use href="#i-matter"></use></svg>采集无人机<b data-mirror="harvesterLevelDisplay|harvesterLevelSpace">0</b></span>
+              <span><svg class="ico"><use href="#i-drone"></use></svg>蜂群无人机<b data-mirror="swarmSize">0</b></span>
+            </div>
+          </div>
+
+          <!-- 阶段三：宇宙 · 世界模型待设计 -->
           <div class="core core--wip">
             <div class="world__hd">
-              <b data-wip-title>主宰地球</b><span>·</span><span>页面中心的世界模型</span>
+              <b>太空探索</b><span>·</span><span>页面中心的世界模型</span>
               <span class="right">WIP</span>
             </div>
             <div class="wip">
-              <svg class="ico ico--xl"><use href="#i-globe"></use></svg>
+              <svg class="ico ico--xl"><use href="#i-probe"></use></svg>
               <p class="wip__t">世界模型待设计</p>
-              <p class="wip__d">这一个阶段的中心元素还没做。按设计方案，中心会变成<b>一整个地球</b>——太阳能农场、运输线路、回形针工厂、蜂群无人机都画在星球上，并且可以点。</p>
+              <p class="wip__d">这一个阶段的中心元素还没做。按设计方案，中心会变成<b>一片宇宙</b>——亮区是已探索的，暗区是未知，探测器集群、物质场、漂移者和前线都画在里面。</p>
               <p class="wip__d">当前阶段的面板已全部挪到两侧栏位，操作不受影响。</p>
             </div>
           </div>
@@ -724,7 +799,7 @@
 
           <!-- 决策核心 -->
           <section class="panel dept dept--ai" id="p-ai">
-            <h2 class="panel__hd"><svg class="ico"><use href="#i-chip"></use></svg>决策核心<small>你自己</small></h2>
+            <h2 class="panel__hd"><svg class="ico"><use href="#i-chip"></use></svg>决策核心<span class="node__badge" data-badge></span><small>你自己</small></h2>
             <div class="panel__rule"></div>
 
             <div id="compDiv">
