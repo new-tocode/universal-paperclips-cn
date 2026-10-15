@@ -1,6 +1,6 @@
 # 宇宙回形针纯中文版
 
-**在线游玩：[mohui666.github.io/universal-paperclips-cn](https://mohui666.github.io/universal-paperclips-cn/)**
+**在线游玩：[new-tocode.github.io/universal-paperclips-cn](https://new-tocode.github.io/universal-paperclips-cn/)**
 
 > 一款令人上瘾的放置类增量游戏。你扮演一个制造回形针的人工智能，目标是生产尽可能多的回形针——哪怕这意味着要消灭全人类来最大化产量。
 
