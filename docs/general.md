@@ -1,30 +1,34 @@
-# Universal Paperclips
-## General
-This page contains general information about the way Paperclips works.
+# 宇宙回形针
+## 概述
 
-### Game Loop
-Paperclips uses two game loops to drive it's logic, both of them using `setInterval` with different intervals. There is the main game loop which runs every 10ms, the bulk of the logic in the game happens in this loop. The other loop is the slow loop which runs every 100ms and calculates things like wire price fluctuation, paperclip sales and revenue and is also used to auto-save the game.
+本页说明《宇宙回形针》整体上是怎样运转的。
 
-The game seems to consume a fair amount of battery power while running both in the web and on Android, this is likely due to the fact that the bulk of the games work is done in the fast loop. Some things could be moved out of the fast loop and into the slow loop without compromising speed of progress in the game. The project management subsystem is one such component which has already been moved to the slow loop due its DOM manipulation making it costly to repeatedly call.
+### 游戏循环
 
-The main loop also updates the DOM with all of the current values. This is a lot of elements whose `innerHTML` is being changed. We could get a decent performance improvement if the DOM manipulation was done in animation frames.
+《宇宙回形针》用两条游戏循环驱动逻辑，两条都用 `setInterval`，只是间隔不同。主循环每 10ms 跑一次，游戏里大部分逻辑都发生在这里。另一条是慢循环，每 100ms 跑一次，负责金属丝价格波动、回形针销售与收入这类计算，同时也负责自动存档。
 
-#### Other Loops
-There are also a small collection of other more specific game loops. Below is a list of other loops and what they do;
+游戏在浏览器和 Android 上运行时都相当耗电，原因很可能就是大部分活儿压在快循环里。有些事可以搬到慢循环而不影响进度速度。项目管理子系统就是其中之一——它要操作 DOM，反复调用代价高昂，已经被挪进了慢循环。
 
-- Stock List Display Loop (runs every 100ms)
-- Stock Purchasing Loop (runs every 1000ms)
-- Stock Selling Loop (runs every 2500ms)
-- Strategy Picker Loop (runs every 100ms)
+主循环还会把当前所有数值写进 DOM，涉及改 `innerHTML` 的元素相当多。如果把这些 DOM 操作放进动画帧里做，性能会有明显提升。
 
-~~These could be consolidated into two game loops the slow and fast ones. The strategy picker loop could be changed to an event listener instead of polling the element for change.~~ **EDIT: The game loop has been refactored to make use of the GameLoop class which provides a slow loop, fast loop and a render loop. All tasks within the various game loops have been refactored into one of these pipelines**
+#### 其它循环
 
-### The New Game Loop
-The `GameLoop` class has been added to the game, this class orchestrates the games logic against three loops. The game loop operates three loops which are invoked repeatedly at different times. The slow loop is invoked every 100ms, the fast loop is invoked every 10ms and the render loop is invoked every time the browser is about to paint the window. Callers can register to be invoked on any of these loops by calling the `register()` method which takes a callback function which will be called every time the loop is invoked.
+另有一小批更专门的循环，列表如下：
 
-The game already had a fast and slow loop (among others) but it did not have a render loop. The render loop is special as it uses `requestAnimationFrame()` to hook into the browsers rendering system. This loop will be invoked just before the browser is about to repaint and reflow the window. Putting tasks which affect the DOM here should help prevent the browser from being forced to reflow between frames. This loop will typically be called at the display devices natural refresh rate, typically at a rate of 60Hz.  This loop is not invoked when the browser or tab does not have focus or isn't visible on the screen, this should also help improve battery life on devices playing the game.
+- 股票列表显示循环（每 100ms）
+- 股票买入循环（每 1000ms）
+- 股票卖出循环（每 2500ms）
+- 策略选择循环（每 100ms）
 
-This class should help orchestrate the many tasks that need to be performed by the game. It should also help improve the performance of the game as DOM related tasks can be moved into the render loop. The class exposes another set of methods `onSlow()`, `onFast()` and `onRender` which can be used to setup multiple callbacks at once. There are various methods within [pipeline-methods.js](../public/pipeline-methods.js) which help you ensure the callback is only called on the loop when certain criteria are met. Below is an example game loop using this class;
+~~这些本可以合并成慢、快两条循环。策略选择循环也可以改成事件监听，而不是轮询元素变化。~~ **补充：游戏循环已经重构，改用 `GameLoop` 类提供的慢循环、快循环和渲染循环。原先散落在各个循环里的任务都已归入这三条流水线。**
+
+### 新的游戏循环
+
+游戏新增了 `GameLoop` 类（[GameLoop.js](../public/GameLoop.js)），由它把游戏逻辑编排到三条循环上。这三条循环以不同频率反复调用：慢循环每 100ms 一次，快循环每 10ms 一次，渲染循环则在浏览器即将绘制窗口时调用。调用方通过 `register()` 方法把回调挂到任意一条循环上，此后每次该循环被调用，回调都会执行。
+
+游戏原本就有快循环和慢循环（以及其它若干循环），但没有渲染循环。渲染循环比较特殊：它用 `requestAnimationFrame()` 接入浏览器的渲染系统，会在浏览器重绘、重排窗口之前调用。把影响 DOM 的任务放在这里，有助于避免浏览器在帧与帧之间被迫重排。这条循环通常按显示设备的原生刷新率调用，一般是 60Hz。当浏览器或标签页失焦、不可见时它不会被调用，这也有助于改善游玩设备的续航。
+
+这个类有助于把游戏需要完成的众多任务编排起来，也能提升性能，因为与 DOM 相关的任务可以搬进渲染循环。它还提供 `onSlow()`、`onFast()`、`onRender()` 三个方法，可以一次注册多个回调。[pipeline-methods.js](../public/pipeline-methods.js) 里有一批方法，用来保证回调只在满足特定条件时才在循环里被调用。下面是一个使用该类的例子：
 
 ```javascript
 var game = new GameLoop();
@@ -40,6 +44,6 @@ game.onFast([
 game.start();
 ```
 
-The example above sets up a new game loop and adds callbacks to the fast game loop to be called every 10ms. The `onX()` methods take an array of functions as arguments. In the example the `calculateClipCount` function will get called every 10ms, however the functions `calculateClipSales` and `manageStocksAndShares` will ONLY get called every 10ms if there are still humans. The `withHumans()` function takes a function and returns a new function which when called will only call the given function if `humanFlag == 0`. The `chain()` function works much the same only it takes an array of functions and when it's called it will call each function in the array.
+上面的例子新建了一个游戏循环，并把回调加到快循环上，每 10ms 调用一次。`onX()` 系列方法接受一个函数数组作为参数。例子里 `calculateClipCount` 每 10ms 被调用一次，而 `calculateClipSales` 和 `manageStocksAndShares` 只有在人类还存在时才会每 10ms 被调用一次。`withHumans()` 接受一个函数并返回一个新函数，新函数只在 `humanFlag == 0` 时才调用原函数。`chain()` 作用类似，只是它接受一个函数数组，被调用时会依次调用数组里的每个函数。
 
-The new game loop lives in [main.js](../public/main.js) and everything else has been moved out into [logic.js](../public/logic.js).
+循环的搭建与注册在 [main.js](../public/main.js)，游戏的其余逻辑都已经搬到 [logic.js](../public/logic.js)。

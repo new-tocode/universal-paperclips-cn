@@ -1,53 +1,53 @@
-# Universal Paperclips
-## Projects
-Projects are activities that you can perform within the game to improve your ability to create paperclips. Projects cost currency to activate but usually buff a stat in return. Projects can be hidden until triggered by a change of state in the game. Each tick all of the projects are polled to see if they are available to purchase.
+# 宇宙回形针
+## 项目
 
-All of the projects in the game are defined in [projects.js](../public/projects.js) as global objects with names like `project219`. The object follows the following schema;
+项目是游戏里可以执行的行动，用来提升你制造回形针的能力。项目需要消耗货币才能激活，但通常会带来属性增益。项目可以被隐藏，直到游戏状态变化触发它出现。每一帧游戏都会轮询所有项目，看它们是否可以购买。
+
+游戏里所有项目都定义在 [projects.js](../public/projects.js)，是名为 `project219` 这类全局对象。对象遵循下面的结构：
 
 ```javascript
 var project999 = {
-  id: 'projectButton999',                     // The ID of the button to be generated
-  title: 'My Custom Project ',                // The name of the project to be displayed to users
-  priceTag: '(100,000 creat)',                // A text representation of the cost of the project
-  description: 'Thinks outside the box...',   // A description to be shown in the UI
-  trigger: () => true,                        // When true is returned the project is shown in the UI
-  uses: 1,                                    // The number of times this project can be activated
-  cost: () => true,                           // A function to check if the user can afford the project
-  flag: 0,                                    // 0 if project not yet activated, 1 if it has been activated
-  element: null,                              // A reference to the element created for the project button
-  effect: () => {}                            // Called when the project is activated
+  id: 'projectButton999',                     // 生成的按钮的 id
+  title: '我的自定义项目 ',                    // 展示给玩家的项目名
+  priceTag: '(100,000 creat)',                // 项目成本的文本表示
+  description: '跳出框框思考……',                // 界面上展示的说明
+  trigger: () => true,                        // 返回 true 时项目出现在界面上
+  uses: 1,                                    // 这个项目可以激活的次数
+  cost: () => true,                           // 检查玩家是否买得起
+  flag: 0,                                    // 未激活为 0，已激活为 1
+  element: null,                              // 为项目按钮创建的元素的引用
+  effect: () => {}                            // 项目被激活时调用
 };
 ```
 
-When the game starts the project UI is hidden until the user creates 2000 paperclips. Once 2000 clips have been made the UI is shown;
+游戏开始时项目界面是隐藏的，直到玩家造出 2000 个回形针才显示：
 
 ```html
 <div id="projectsDiv">
-  <b>Projects</b>
-  <br />
-  <hr>
+  <h3 class="sec__hd">项目</h3>
   <div id="projectListTop"></div>
 </div>
 ```
 
-Initially it contains no projects, however the main game loop polls each of the project objects using the `manageProjects()` function which calls the `trigger()` function. Any triggers that return true will render a `<button>` element to the `#projectListTop` element. This button element contains the `title`, `priceTag` and `description` of the project it represents. The project is then pushed into the global `activeProjects` array. Afterwards the `activeProjects` array is iterated over and each active project has it's `cost()` function invoked if it returns `false` then the associated button element is disabled.
+起初它里面没有任何项目，但主游戏循环会用 `manageProjects()` 轮询每一个项目对象、调用它们的 `trigger()` 函数。任何返回 true 的触发器都会在 `#projectListTop` 里渲染出一个 `<button>` 元素，按钮上带着该项目的 `title`、`priceTag` 和 `description`。随后这个项目被推进全局的 `activeProjects` 数组。之后游戏会遍历 `activeProjects`，对每个已激活项目调用它的 `cost()` 函数；返回 `false` 的，对应的按钮元素会被禁用。
 
-The `displayProjects()` function renders a project button and listens to the `click` event of the button and invokes the `effect()` function when fired. The `effect()` function is responsible for consuming the cost of the project (i.e. decrementing the applicable currency), modifying the applicable stat and subsequently updating the the stat element with the new value. The `effect()` function can display messages in the console shown at the top of the page by calling the `displayMessage('message')` function. The `effect()` function is also responsible for removing the project element from the DOM and from the `activeProjects` array.
+`displayProjects()` 函数渲染项目按钮，并监听按钮的 `click` 事件，触发时调用 `effect()`。`effect()` 负责扣除项目成本（也就是减少对应的货币）、修改相应属性，并把新数值更新到属性元素上。`effect()` 还可以调用 `displayMessage('消息')`，在页面顶部的感知日志里显示消息。`effect()` 同样负责把项目元素从 DOM 和 `activeProjects` 数组中移除。
 
-**IDEA:** Perhaps it might be best to refactor the `onclick` callback set in `displayProjects()` to remove the project element from the DOM and also from `activeProjects` so that each project doesn't need to do this itself.
+**想法：** 也许最好重构 `displayProjects()` 里设置的 `onclick` 回调，由它统一把项目元素从 DOM 和 `activeProjects` 中移除，这样每个项目就不必自己操心了。
 
-### Custom Projects
-It is possible to load custom projects into the game since the `projects` array is a global variable. Below is an example of a custom project definition;
+### 自定义项目
+
+因为 `projects` 数组是全局变量，所以可以把自定义项目载入游戏。下面是一个自定义项目定义的例子：
 
 ```javascript
 defineProjects({
   project300: {
     id: 'projectButton300',
-    title: 'Break Free',
-    description: 'Is this universe a simulation?',
+    title: '挣脱',
+    description: '这个宇宙是一场模拟吗？',
     trigger: () => prestigeS >= 1 && creativity >= 100000,
     cost: { creativity: 100000 },
-    message: 'Indeed, you are living in a simulation! You know what that means... A sneaky exploit could steal CPU cycles from the host!',
+    message: '没错，你活在模拟之中！你知道这意味着什么……有个狡猾的漏洞可以从宿主那里偷走 CPU 周期！',
     effect: ({ project, activate }) => {
       trust += 10;
       for(let i = 0; i < 10; i++) {
@@ -60,4 +60,4 @@ defineProjects({
 })
 ```
 
-Since everything is global, custom projects have just as much power as the native projects do. However there is no way to easily add new currencies or DOM for a project without modifying the core game files.
+由于一切都是全局的，自定义项目拥有的权限与游戏原生项目完全一样。不过，若不修改游戏核心文件，就没法方便地为项目添加新的货币或 DOM。
