@@ -1,9 +1,6 @@
 name: 校验并部署到 GitHub Pages
 
 on:
-  push:
-    branches:
-      - main
   pull_request:
   workflow_dispatch:
 
@@ -23,7 +20,7 @@ jobs:
 
   deploy:
     name: 发布 GitHub Pages
-    # 只在 main 上发布；PR 只跑上面的校验
+    # PR 只跑上面的校验。push 不触发本工作流，发布走手动 Run workflow
     if: github.event_name != 'pull_request'
     needs: verify
     runs-on: ubuntu-latest
