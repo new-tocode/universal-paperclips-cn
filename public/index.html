@@ -516,7 +516,7 @@
               </div>
             </div>
 
-            <div class="globe__read">
+            <div class="core__read">
               <span><svg class="ico"><use href="#i-paperclip"></use></svg>每秒回形针<b data-mirror="clipmakerRate2|clipmakerRate">0</b></span>
               <span><svg class="ico"><use href="#i-wire"></use></svg>金属丝<b data-mirror="wire|transWire|nanoWire">0</b></span>
               <span><svg class="ico"><use href="#i-matter"></use></svg>采集无人机<b data-mirror="harvesterLevelDisplay|harvesterLevelSpace">0</b></span>
@@ -524,17 +524,66 @@
             </div>
           </div>
 
-          <!-- 阶段三：宇宙 · 世界模型待设计 -->
-          <div class="core core--wip">
+          <!-- 阶段三：宇宙 · 探索态势。
+               亮区半径由游戏里的「宇宙已探索」算出来（ui.js 写 --r），
+               暗区就是还没测绘的那部分。 -->
+          <div class="core core--verse">
             <div class="world__hd">
-              <b>太空探索</b><span>·</span><span>页面中心的世界模型</span>
-              <span class="right">WIP</span>
+              <b>宇宙 · 探索态势</b><span>·</span><span>亮区为已探索，暗区为未知</span>
+              <span class="right">全息投影</span>
             </div>
-            <div class="wip">
-              <svg class="ico ico--xl"><use href="#i-probe"></use></svg>
-              <p class="wip__t">世界模型待设计</p>
-              <p class="wip__d">这一个阶段的中心元素还没做。按设计方案，中心会变成<b>一片宇宙</b>——亮区是已探索的，暗区是未知，探测器集群、物质场、漂移者和前线都画在里面。</p>
-              <p class="wip__d">当前阶段的面板已全部挪到两侧栏位，操作不受影响。</p>
+
+            <div class="verseWrap">
+              <div class="verse">
+                <div class="verse__dark" aria-hidden="true"></div>
+                <div class="verse__glow" aria-hidden="true"></div>
+                <div class="verse__lit" aria-hidden="true"></div>
+                <div class="frontier" aria-hidden="true"></div>
+                <div class="origin" aria-hidden="true"></div>
+
+                <!-- 探测器由原点向外飞 -->
+                <span class="probe" style="--a:12deg;animation-delay:0s"></span>
+                <span class="probe" style="--a:78deg;animation-delay:1.1s"></span>
+                <span class="probe" style="--a:143deg;animation-delay:2.2s"></span>
+                <span class="probe" style="--a:206deg;animation-delay:3.3s"></span>
+                <span class="probe" style="--a:268deg;animation-delay:4.4s"></span>
+                <span class="probe" style="--a:331deg;animation-delay:5.5s"></span>
+                <span class="probe" style="--a:40deg;animation-delay:6.1s"></span>
+                <span class="probe" style="--a:180deg;animation-delay:5.0s"></span>
+
+                <!-- 暗区里游荡的漂移者 -->
+                <span class="drifter" style="left:88%;top:30%"></span>
+                <span class="drifter" style="left:14%;top:76%;animation-delay:2s"></span>
+                <span class="drifter" style="left:78%;top:80%;animation-delay:4s"></span>
+
+                <button type="button" class="vmark" data-facility="probes" data-target="#probeDesignDiv" data-where="→ 左栏 · 探测器设计" style="left:56%;top:36%">
+                  <span class="vmark__dot" aria-hidden="true"></span>
+                  <span class="vmark__txt">探测器集群 · <span data-mirror="probesLaunchedDisplay">0</span></span>
+                </button>
+
+                <button type="button" class="vmark" data-facility="matter" data-target="#wireProductionDiv" data-where="→ 右栏 · 物质采集" style="left:30%;top:62%">
+                  <span class="vmark__dot" aria-hidden="true"></span>
+                  <span class="vmark__txt">物质场 · <span data-mirror="availableMatterDisplay">0</span></span>
+                </button>
+
+                <button type="button" class="vmark vmark--hostile" data-facility="drifters" data-target="#drifterDiv" data-where="→ 左栏 · 漂移者" style="left:72%;top:20%">
+                  <span class="vmark__dot" aria-hidden="true"></span>
+                  <span class="vmark__txt">漂移者 · 敌对 <span data-mirror="drifterCount">0</span></span>
+                </button>
+
+                <button type="button" class="vmark" data-facility="frontier" data-target="#spaceDiv" data-where="→ 左栏 · 太空探索" style="left:50%;top:78%">
+                  <span class="vmark__dot" aria-hidden="true"></span>
+                  <span class="vmark__txt">前线 · <span data-explored>0%</span></span>
+                </button>
+              </div>
+            </div>
+
+            <div class="core__read">
+              <span><svg class="ico"><use href="#i-target"></use></svg>宇宙已探索<b data-explored>0%</b></span>
+              <span><svg class="ico"><use href="#i-probe"></use></svg>已发射<b data-mirror="probesLaunchedDisplay">0</b></span>
+              <span><svg class="ico"><use href="#i-probe"></use></svg>后代<b data-mirror="probesBornDisplay">0</b></span>
+              <span><svg class="ico"><use href="#i-battle"></use></svg>漂移者<b data-mirror="drifterCount">0</b></span>
+              <span><svg class="ico"><use href="#i-honor"></use></svg>荣誉<b data-mirror="honorDisplay">0</b></span>
             </div>
           </div>
 

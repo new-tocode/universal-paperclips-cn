@@ -2,8 +2,8 @@
    界面层
    ------------------------------------------------------------
    只做三件事：把游戏状态翻译成 <body> 上的 data-phase / data-dept、
-   把若干真实数值镜像到顶栏与看板上，以及把中心的地球设施标记指向
-   真实操作台（只描边、只滚动，不搬动任何元素）。
+   把若干真实数值镜像到顶栏与看板上，以及把中心的世界标记（地球上的
+   设施、宇宙里的目标）指向真实操作台（只描边、只滚动，不搬动任何元素）。
 
    这里不包含任何游戏逻辑，也不修改 logic.js 里的任何变量。
    ============================================================ */
@@ -22,6 +22,8 @@
   var projectList = document.getElementById('projectListTop');
   var projectBadges = [];
   var facilities = [];
+  var verse = document.querySelector('.verse');
+  var exploredNodes = [];
 
   var GONE_TAG = '已解散';
   var GONE_NOTE = '监管方已不存在。不再有人批准你做什么。';
@@ -55,10 +57,11 @@
 
   function syncPhase() {
     var phase = readPhase();
-    if (body.dataset.phase !== phase) body.dataset.phase = phase;
-
-    // 地球上的设施标记只在主宰地球阶段用，离开时把选中状态收干净
-    if (phase !== 'dominate' && body.dataset.facility) clearFacility();
+    if (body.dataset.phase !== phase) {
+      body.dataset.phase = phase;
+      // 标记是"这一阶段的中心"上的东西，换阶段就收干净
+      if (body.dataset.facility) clearFacility();
+    }
 
     // 人类是否还在，看 humanFlag 本身。
     // 不能用"信任那一块被藏起来了"来判断——那块还受计算资源是否解锁影响。
@@ -137,14 +140,15 @@
   }
 
   /* ------------------------------------------------------------
-     地球上的设施标记 → 真实操作台。
+     中心的标记 → 真实操作台。地球上的设施（.gmark）与宇宙里的
+     目标（.vmark）共用这一套。
 
      data-target 指向真实元素，所以"解锁没有"不用另外记：
      逻辑层把那一块藏起来的时候，标记就是未解锁的样子。
      选中只做三件事：给操作台描边、滚进视野、标记自己亮起来。
      ------------------------------------------------------------ */
   function readFacilities() {
-    var nodes = document.querySelectorAll('.gmark[data-facility]');
+    var nodes = document.querySelectorAll('[data-facility]');
     for (var i = 0; i < nodes.length; i++) {
       var sel = nodes[i].getAttribute('data-target');
       facilities.push({
@@ -212,6 +216,38 @@
     });
   }
 
+  /* ------------------------------------------------------------
+     宇宙：亮区＝已测绘的部分，半径由游戏的「宇宙已探索」算出来。
+
+     colonizedDisplay 是 (100 / (totalMatter / foundMatter)).toFixed(12)，
+     十二位小数没法看，这里只四舍五入一位——数字还是游戏那一个。
+     半径按面积换算：r = 半幅 × √(已探索)。
+     ------------------------------------------------------------ */
+  function syncVerse() {
+    if (!verse) return;
+
+    var src = document.getElementById('colonizedDisplay');
+    var p = src ? parseFloat(src.textContent) : NaN;
+    if (!isFinite(p) || p < 0) p = 0;
+    if (p > 100) p = 100;
+
+    var label = p.toFixed(1) + '%';
+    for (var i = 0; i < exploredNodes.length; i++) setText(exploredNodes[i], label);
+
+    // 中心被藏起来时量不出宽度，等切到这个阶段的下一次 tick 再写
+    var w = verse.clientWidth;
+    if (w > 0) {
+      var r = (w / 2) * Math.sqrt(p / 100);
+      verse.style.setProperty('--r', r.toFixed(1) + 'px');
+      verse.style.setProperty('--explored', label);
+    }
+
+    // 一个探测器都没发射的时候，别让它们在天上飞
+    var launched = document.getElementById('probesLaunchedDisplay');
+    var idle = launched ? !(parseFloat(launched.textContent) > 0) : true;
+    if (verse.classList.contains('is-idle') !== idle) verse.classList.toggle('is-idle', idle);
+  }
+
   /* ------------------------------------------------------------ */
   function tick() {
     syncPhase();
@@ -220,6 +256,7 @@
     if (now - lastMirrorAt >= MIRROR_INTERVAL) {
       lastMirrorAt = now;
       syncLocked();
+      syncVerse();
       syncMirrors();
     }
   }
@@ -232,6 +269,9 @@
 
     var badges = document.querySelectorAll('[data-badge]');
     for (var j = 0; j < badges.length; j++) projectBadges.push(badges[j]);
+
+    var explored = document.querySelectorAll('[data-explored]');
+    for (var k = 0; k < explored.length; k++) exploredNodes.push(explored[k]);
 
     wireDeptNodes();
     wireFacilities();
